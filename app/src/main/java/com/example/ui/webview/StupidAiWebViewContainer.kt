@@ -72,29 +72,67 @@ fun StupidAiWebViewContainer(
                 return false;
             });
 
-            // Intercept clicks on Add to Home Screen / Add Shortcut / Install App buttons
+            // Intercept clicks ONLY when the specific "Add to Home Screen" or "Install App" button is pressed
             document.addEventListener('click', function(e) {
                 var target = e.target;
-                while (target && target !== document.body) {
-                    var text = (target.innerText || target.textContent || '').trim().toLowerCase();
-                    var aria = (target.getAttribute('aria-label') || '').toLowerCase();
-                    var testId = (target.getAttribute('data-testid') || '').toLowerCase();
-                    if (text.indexOf('add to home') !== -1 || text.indexOf('install app') !== -1 || text.indexOf('add shortcut') !== -1 ||
-                        aria.indexOf('install') !== -1 || testId.indexOf('install') !== -1) {
-                        if (window.StupidAiNativeBridge && window.StupidAiNativeBridge.requestInstallShortcut) {
-                            e.preventDefault();
-                            e.stopPropagation();
+                if (!target) return;
 
-                            // Extract specific chat title if present
-                            var titleElem = document.querySelector('h1, h2, [data-testid*="title"], [class*="title"], header');
-                            var chatTitle = (titleElem ? (titleElem.innerText || titleElem.textContent || '').trim() : '') || document.title || 'Stupid AI Chat';
-                            var chatUrl = window.location.href;
+                // Find the closest interactive element (button, menu item, anchor)
+                var item = target.closest ? target.closest('button, [role="menuitem"], [role="button"], a, li') : null;
+                if (!item) return;
 
-                            window.StupidAiNativeBridge.requestInstallShortcut(chatTitle, chatUrl);
-                            return false;
-                        }
+                // Ignore menu containers, lists, or elements with multiple clickable children
+                if (item.tagName === 'UL' || item.tagName === 'OL' || item.querySelectorAll('button, a, [role="menuitem"]').length > 1) {
+                    return;
+                }
+
+                // Check text and attributes of THIS specific item only
+                var text = (item.innerText || item.textContent || '').trim().toLowerCase();
+                var aria = (item.getAttribute('aria-label') || '').toLowerCase();
+                var testId = (item.getAttribute('data-testid') || '').toLowerCase();
+
+                // Exclude the 3-dots trigger button itself (which usually has "more", "menu", "options", etc.)
+                if (aria === 'menu' || aria === 'more' || aria === 'options' || aria.indexOf('more options') !== -1) {
+                    return;
+                }
+
+                // Exclude other standard options that might be in the same three-dots menu
+                if (text.indexOf('rename') !== -1 || text.indexOf('delete') !== -1 || text.indexOf('share') !== -1 ||
+                    text.indexOf('settings') !== -1 || text.indexOf('help') !== -1 || text.indexOf('logout') !== -1 ||
+                    text.indexOf('sign out') !== -1 || text.indexOf('new chat') !== -1 || text.indexOf('clear') !== -1 ||
+                    text.indexOf('export') !== -1 || text.indexOf('copy') !== -1) {
+                    return;
+                }
+
+                // Strictly match the Add to Home Screen / Install App action
+                var isAddToHome = (
+                    text === 'add to home screen' ||
+                    text === 'add to homescreen' ||
+                    text === 'add to home' ||
+                    text === 'add shortcut' ||
+                    text === 'install app' ||
+                    text === 'install stupid ai' ||
+                    text.indexOf('add to home') !== -1 ||
+                    text.indexOf('add to homescreen') !== -1 ||
+                    aria === 'add to home screen' ||
+                    aria === 'add to homescreen' ||
+                    aria === 'install app' ||
+                    testId === 'add-to-home' ||
+                    testId === 'install-app'
+                );
+
+                if (isAddToHome) {
+                    if (window.StupidAiNativeBridge && window.StupidAiNativeBridge.requestInstallShortcut) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        var titleElem = document.querySelector('h1, h2, [data-testid*="title"], [class*="title"], header');
+                        var chatTitle = (titleElem ? (titleElem.innerText || titleElem.textContent || '').trim() : '') || document.title || 'Stupid AI Chat';
+                        var chatUrl = window.location.href;
+
+                        window.StupidAiNativeBridge.requestInstallShortcut(chatTitle, chatUrl);
+                        return false;
                     }
-                    target = target.parentElement;
                 }
             }, true);
 
