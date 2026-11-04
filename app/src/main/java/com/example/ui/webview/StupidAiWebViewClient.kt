@@ -63,9 +63,7 @@ class StupidAiWebViewClient(
     ) {
         super.onReceivedError(view, request, error)
         if (request?.isForMainFrame == true) {
-            val description = error?.description?.toString() ?: "Network request failed"
-            // Intercept default browser error page and display local offline HTML
-            view?.loadUrl("file:///android_asset/offline.html")
+            val description = error?.description?.toString() ?: "Network connection failed"
             onError(description)
         }
     }
@@ -77,8 +75,7 @@ class StupidAiWebViewClient(
         failingUrl: String?
     ) {
         super.onReceivedError(view, errorCode, description, failingUrl)
-        view?.loadUrl("file:///android_asset/offline.html")
-        onError(description ?: "Network error occurred")
+        onError(description ?: "Network connection error")
     }
 
     override fun onReceivedHttpError(
@@ -88,7 +85,6 @@ class StupidAiWebViewClient(
     ) {
         super.onReceivedHttpError(view, request, errorResponse)
         if (request?.isForMainFrame == true && (errorResponse?.statusCode ?: 0) >= 500) {
-            view?.loadUrl("file:///android_asset/offline.html")
             onError("Server Error (${errorResponse?.statusCode}): ${errorResponse?.reasonPhrase}")
         }
     }

@@ -25,20 +25,16 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: false
+          cache: 'gradle'
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -96,20 +92,19 @@ jobs:
           echo "Prepared release artifact: release-artifacts/STUPID_AI-${TAG}.apk"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: stupid-ai-release-${{ env.RELEASE_TAG }}
           path: ${{ env.RELEASE_APK_FILE }}
           retention-days: 60
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          name: ${{ github.event.inputs.release_title || env.RELEASE_TAG }}
-          files: ${{ env.RELEASE_APK_FILE }}
-          generate_release_notes: true
-          draft: false
-          prerelease: false
+      - name: Create GitHub Release via GitHub CLI
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ env.RELEASE_TAG }}
+          TITLE: ${{ github.event.inputs.release_title || env.RELEASE_TAG }}
+          FILE: ${{ env.RELEASE_APK_FILE }}
+        run: |
+          gh release create "$TAG" "$FILE" \
+            --title "$TITLE" \
+            --generate-notes

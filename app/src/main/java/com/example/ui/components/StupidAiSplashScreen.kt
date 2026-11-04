@@ -167,7 +167,7 @@ fun StupidAiSplashScreen(
 
             // App Name
             Text(
-                text = "STUPID AI",
+                text = "Stupid AI",
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 3.sp

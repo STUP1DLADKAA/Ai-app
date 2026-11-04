@@ -1,5 +1,5 @@
 {
-  "name": "STUPID AI",
+  "name": "Stupid AI",
   "description": "Production Android application for STUPID AI with native web integration, performance optimization, and offline support.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
