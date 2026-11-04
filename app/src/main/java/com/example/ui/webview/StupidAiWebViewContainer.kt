@@ -3,11 +3,12 @@ package com.example.ui.webview
 import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
+import android.os.Build
+import com.example.BuildConfig
 import android.os.Environment
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
-import android.webkit.DownloadListener
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -24,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.viewinterop.AndroidView
 
+@Suppress("DEPRECATION")
 @Composable
 fun StupidAiWebViewContainer(
     targetUrl: String,
@@ -42,6 +44,7 @@ fun StupidAiWebViewContainer(
     val context = LocalContext.current
 
     val webView = remember {
+        WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
         WebView(context).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -69,6 +72,11 @@ fun StupidAiWebViewContainer(
                 useWideViewPort = true
                 loadWithOverviewMode = true
                 setNeedInitialFocus(true)
+                setSupportMultipleWindows(false)
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    safeBrowsingEnabled = true
+                }
 
                 // Custom User-Agent tag to signal native STUPID AI Android app wrapper
                 val defaultUa = userAgentString
@@ -81,7 +89,7 @@ fun StupidAiWebViewContainer(
             cookieManager.setAcceptThirdPartyCookies(this, true)
 
             // Native Download Handling
-            setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
+            setDownloadListener { url, userAgent, contentDisposition, mimetype, _ ->
                 try {
                     val request = DownloadManager.Request(Uri.parse(url)).apply {
                         setMimeType(mimetype)

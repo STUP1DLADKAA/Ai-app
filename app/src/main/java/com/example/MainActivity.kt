@@ -136,8 +136,10 @@ class MainActivity : ComponentActivity(), ComponentCallbacks2 {
 
     override fun onResume() {
         super.onResume()
-        // Automatically refresh or revalidate website state when returning to foreground
-        viewModel.triggerReload()
+        // Only trigger reload if the app was previously in an error or offline state
+        if (viewModel.webError.value != null || !viewModel.isOnline.value) {
+            viewModel.triggerReload()
+        }
     }
 
     // Custom back-button handling navigating through WebView browser history

@@ -11,6 +11,7 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 
+@Suppress("DEPRECATION")
 class StupidAiWebViewClient(
     private val context: Context,
     private val targetHost: String = "ai-website-xi-lac.vercel.app",
@@ -69,7 +70,6 @@ class StupidAiWebViewClient(
         }
     }
 
-    @Suppress("DEPRECATION")
     override fun onReceivedError(
         view: WebView?,
         errorCode: Int,
